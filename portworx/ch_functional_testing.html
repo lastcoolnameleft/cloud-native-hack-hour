@@ -1,0 +1,683 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>Functional Testing &mdash; Portworx Microsoft GBB Labs 0.1 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/bespoke.css" type="text/css" />
+  <link rel="stylesheet" href="_static/sphinxmark.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/clipboard.min.js"></script>
+        <script src="_static/copybutton.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Resilience" href="ch_resilience.html" />
+    <link rel="prev" title="Installation" href="ch_installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> Portworx Microsoft GBB Labs
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Azure Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Functional Testing</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#volume-provisioning">Volume Provisioning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-placement-strategy">Volume placement strategy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#read-write-once-postgres-deployment">Read Write Once - Postgres deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#failover-test-postgres">Failover Test - Postgres</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#read-write-many-nginx-deployment">Read Write Many - nginx deployment</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#scale-out-nginx">Scale out nginx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-encryption-cluster-wide-encryption">Volume Encryption - cluster wide encryption</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-encryption-volume-granular-encryption">Volume Encryption - volume granular encryption</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-snapshot">Volume snapshot</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-snapshot-restore">Volume snapshot restore</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#volume-resize-automate-with-autopilot">Volume resize - automate with autopilot</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="ch_resilience.html">Resilience</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Portworx Microsoft GBB Labs</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Functional Testing</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="functional-testing">
+<h1>Functional Testing<a class="headerlink" href="#functional-testing" title="Permalink to this headline">¶</a></h1>
+<p>In this section we will be using Postgres and Nginx to test Portworx features.</p>
+<div class="section" id="volume-provisioning">
+<h2>Volume Provisioning<a class="headerlink" href="#volume-provisioning" title="Permalink to this headline">¶</a></h2>
+<p>Create a Postgres namespace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl create ns postgres
+</pre></div>
+</div>
+<p>Create a Postgres storage class:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/postgres-sc.yaml
+</pre></div>
+</div>
+<p>Create a Postgres volume:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/postgres-pvc.yaml
+</pre></div>
+</div>
+<p>Verify that the volume is created and bound:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get pvc -n postgres
+</pre></div>
+</div>
+<p>The output should look something like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>NAME            STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS     AGE
+
+postgres-data   Bound    pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3   2Gi        RWO            px-postgres-sc   16s
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-placement-strategy">
+<h2>Volume placement strategy<a class="headerlink" href="#volume-placement-strategy" title="Permalink to this headline">¶</a></h2>
+<p>When you provision volumes, Portworx places them throughout the cluster and across configured failure domains to provide fault tolerance. While this default manner of operation works well in many scenarios, you may wish to control how Portworx handles volume and replica provisioning more explicitly. You can do this by creating VolumePlacementStrategy CRDs.</p>
+<p>In our example we will create a volume placement strategy that places a single replica volume onto a specific node.</p>
+<p>To do this we will use the <cite>kubernetes.io/hostname</cite> label that automatically gets applied to the storage pools in Portworx.</p>
+<p>Let’s pick the first worker node in the list of nodes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># this command assumes your nodes are labled correctly</span>
+<span class="nv">NODE</span><span class="o">=</span><span class="sb">`</span>kubectl get nodes -l node-role.kubernetes.io/worker<span class="o">=</span><span class="nb">true</span> -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+</pre></div>
+</div>
+<p>And create a VPS using this node:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">portworx.io/v1beta2</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">VolumePlacementStrategy</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">node-specific</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">replicaAffinity</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">matchExpressions</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="nt">key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/hostname</span>
+        <span class="nt">operator</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">In</span>
+        <span class="nt">values</span><span class="p">:</span>
+        <span class="p p-Indicator">-</span> <span class="s">&quot;$NODE&quot;</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Now we can create a pvc and verify that it was scheduled on the node we selected.</p>
+<p>First we’ll create a storage class that uses our VPS:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-node-specific-sc</span>
+  <span class="nt">labels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="nt">provisioner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/portworx-volume</span>
+<span class="nt">parameters</span><span class="p">:</span>
+  <span class="nt">repl</span><span class="p">:</span> <span class="s">&quot;1&quot;</span>
+  <span class="nt">placement_strategy</span><span class="p">:</span> <span class="s">&quot;node-specific&quot;</span>
+<span class="nt">allowVolumeExpansion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>And now we’ll create a PVC from that storage class:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">vps-test</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">storageClassName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-node-specific-sc</span>
+  <span class="nt">accessModes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ReadWriteOnce</span>
+  <span class="nt">resources</span><span class="p">:</span>
+    <span class="nt">requests</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">20Gi</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Verify that the Volume is on the node we selected. To do this we’re going to inspect the pvc using pxctl and check the node IP in the replicas section matches with our node’s Internal-IP:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># check that the PVC is bound before running the inspect command</span>
+kubectl get pvc vps-test
+<span class="c1"># once it&#39;s bound you can inspect it</span>
+<span class="nv">PVC</span><span class="o">=</span><span class="sb">`</span>kubectl get pvc vps-test --no-headers <span class="p">|</span> awk <span class="s1">&#39;{print $3}&#39;</span><span class="sb">`</span>
+pxctl volume inspect <span class="nv">$PVC</span>
+<span class="c1"># and confirm that the IP of the Node in the replica set matches the node&#39;s IP</span>
+kubectl get node <span class="nv">$NODE</span> -o wide
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-write-once-postgres-deployment">
+<h2>Read Write Once - Postgres deployment<a class="headerlink" href="#read-write-once-postgres-deployment" title="Permalink to this headline">¶</a></h2>
+<p>We already have a ReadWriteOnce volume created from step 2.1 so we’re now going to deploy the Postgres database to use it.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/postgres-app.yaml
+</pre></div>
+</div>
+<p>The pod should be ready in just a few seconds:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get po -n postgres
+</pre></div>
+</div>
+<p>Now let’s create a database:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;create database pxdemo;&quot;</span>
+</pre></div>
+</div>
+<p>and insert some data into into it using pgbench:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- pgbench -i -s <span class="m">50</span> pxdemo
+</pre></div>
+</div>
+<p>You should now have about 800 MB of data in the PVC:
+and 5M rows in the table. You can verify with the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- df -m <span class="p">|</span> grep postgres
+</pre></div>
+</div>
+<p>and 5M rows in the table. You can verify with the following commands:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="failover-test-postgres">
+<h2>Failover Test - Postgres<a class="headerlink" href="#failover-test-postgres" title="Permalink to this headline">¶</a></h2>
+<p>Now let’s perform a failover test by cordoning the node where Postgres is running and deleting the pod, forcing it to start on another node.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NODE</span><span class="o">=</span><span class="sb">`</span>kubectl get pods -l <span class="nv">app</span><span class="o">=</span>postgres -n postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].spec.nodeName}&#39;</span><span class="sb">`</span>
+kubectl cordon <span class="nv">$NODE</span>
+kubectl delete pod <span class="nv">$POSTGRES_POD</span> -n postgres
+</pre></div>
+</div>
+<p>Verify that the pod is back up on another node:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get pod -o wide -n postgres
+</pre></div>
+</div>
+<p>Verify that the data is intact in the new pod:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- df -m <span class="p">|</span> grep postgres
+</pre></div>
+</div>
+<p>Query the database:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>Uncordon the node:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl uncordon <span class="nv">$NODE</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="read-write-many-nginx-deployment">
+<h2>Read Write Many - nginx deployment<a class="headerlink" href="#read-write-many-nginx-deployment" title="Permalink to this headline">¶</a></h2>
+<p>For ReadWriteMany we will deploy an instance of nginx which use a shared volume to mount the <cite>/usr/share/nginx/html</cite> folder.</p>
+<p>First, let’s create a sharedv4 storage class:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/nginx-sc.yaml
+</pre></div>
+</div>
+<p>Second, let’s create a ReadWriteMany PVC in the nginx namespace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl create ns nginx
+kubectl apply -f yamls/nginx-pvc.yaml
+</pre></div>
+</div>
+<p>Finally, let’s deploy an instance of nginx:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/nginx-app.yaml
+</pre></div>
+</div>
+<p>Make sure the nginx instance is running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get po -n nginx
+</pre></div>
+</div>
+<p>Then access the public IP in a browser.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get svc -n nginx
+</pre></div>
+</div>
+<p>You should see a 403 Forbidden message because there is no content in the html folder mounted on the empty volume.</p>
+<p>Let’s add an index.html file in one the pods:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>cat <span class="s">&lt;&lt; EOF | cat &gt;&gt; index.html</span>
+<span class="s">&lt;html&gt;</span>
+<span class="s">&lt;h1&gt;Hello World&lt;\h1&gt;</span>
+<span class="s">&lt;/html&gt;</span>
+<span class="s">EOF</span>
+<span class="nv">POD</span><span class="o">=</span><span class="sb">`</span>kubectl get pods -n nginx --no-headers <span class="p">|</span> head -n <span class="m">1</span> <span class="p">|</span> awk <span class="s1">&#39;{print $1}&#39;</span><span class="sb">`</span>
+kubectl cp -n nginx index.html <span class="nv">$POD</span>:/usr/share/nginx/html/index.html
+</pre></div>
+</div>
+</div>
+<div class="section" id="scale-out-nginx">
+<h2>Scale out nginx<a class="headerlink" href="#scale-out-nginx" title="Permalink to this headline">¶</a></h2>
+<p>Because our nginx deployment is using a ReadWriteMany volume, we can add as many pod instances as we want and all of them will share the content we uploaded in the first instance.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl scale deploy nginx -n nginx --replicas<span class="o">=</span><span class="m">3</span>
+</pre></div>
+</div>
+<p>Verify that all three pods are able to mount the same volume even though they are running on different nodes:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch kubectl get po -n nginx -owide
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-encryption-cluster-wide-encryption">
+<h2>Volume Encryption - cluster wide encryption<a class="headerlink" href="#volume-encryption-cluster-wide-encryption" title="Permalink to this headline">¶</a></h2>
+<p>For encryption, we need to create a secret with a passphrase to encrypt volumes with.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl -n portworx create secret generic px-vol-encryption <span class="se">\</span>
+  --from-literal<span class="o">=</span>cluster-wide-secret-key<span class="o">=</span>Il0v3Portw0rX
+</pre></div>
+</div>
+<p>Once that passphrase is stored in a secret, we need to tell Portworx to use that secret for volume encryption:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pxctl secrets set-cluster-key --secret cluster-wide-secret-key
+</pre></div>
+</div>
+<p>Now we are ready to create encrypted volumes, we can simply add a <cite>secure: “true”</cite> parameter to our storage classes:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">StorageClass</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">storage.k8s.io/v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-secure-sc</span>
+<span class="nt">provisioner</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kubernetes.io/portworx-volume</span>
+<span class="nt">parameters</span><span class="p">:</span>
+  <span class="nt">secure</span><span class="p">:</span> <span class="s">&quot;true&quot;</span>
+  <span class="nt">repl</span><span class="p">:</span> <span class="s">&quot;3&quot;</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>And now we can create encrypted volumes from that storageclass:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">secure-pvc</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">storageClassName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-secure-sc</span>
+  <span class="nt">accessModes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ReadWriteOnce</span>
+  <span class="nt">resources</span><span class="p">:</span>
+    <span class="nt">requests</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2Gi</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>If you list the volumes with <cite>pxctl</cite> you will now see that the secure-pvc volume is encrypted:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pxctl v l
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-encryption-volume-granular-encryption">
+<h2>Volume Encryption - volume granular encryption<a class="headerlink" href="#volume-encryption-volume-granular-encryption" title="Permalink to this headline">¶</a></h2>
+<p>For volume granular encryption, the process is similar except that the passphrase is stored in a secret that is used by the PVC for encryption.</p>
+<p>For this test, we will create an encrypted version of the Postgres database. First, let’s create a secret in the postgres namespace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl -n postgres create secret generic postgres-encryption-key --from-literal<span class="o">=</span>secure-pvc<span class="o">=</span>SuperSecur3Key
+</pre></div>
+</div>
+<p>Now, let’s create an encrypted PVC in the postgres namespace that uses the same storage class we created for Postgres:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">kind</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">PersistentVolumeClaim</span>
+<span class="nt">apiVersion</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">v1</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-data-encrypted</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+  <span class="nt">annotations</span><span class="p">:</span>
+    <span class="nt">px/secret-name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-encryption-key</span>
+    <span class="nt">px/secret-namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+    <span class="nt">px/secret-key</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">secure-pvc</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">storageClassName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-postgres-sc</span>
+  <span class="nt">accessModes</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ReadWriteOnce</span>
+  <span class="nt">resources</span><span class="p">:</span>
+    <span class="nt">requests</span><span class="p">:</span>
+      <span class="nt">storage</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">2Gi</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>We can now create an new Postgres deployment that uses the encrypted PVC:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f yamls/postgres-app-encrypted.yaml
+kubectl get po -n postgres -w
+</pre></div>
+</div>
+<p>Once the database is initialized and ready we can create some data, as before:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres-encrypted -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;create database pxdemo;&quot;</span>
+</pre></div>
+</div>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- pgbench -i -s <span class="m">50</span> pxdemo
+</pre></div>
+</div>
+<p>Let’s query our data:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>Now we’re going to delete the secret with our encryption key to show that the volume cannot be mounted without it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl delete secret postgres-encryption-key -n postgres
+</pre></div>
+</div>
+<p>Force the volume to be mounted somewhere else in the cluster, as we did before:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NODE</span><span class="o">=</span><span class="sb">`</span>kubectl get pods -l <span class="nv">app</span><span class="o">=</span>postgres -n postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].spec.nodeName}&#39;</span><span class="sb">`</span>
+kubectl cordon <span class="nv">$NODE</span>
+kubectl delete pod <span class="nv">$POSTGRES_POD</span> -n postgres
+kubectl uncordon <span class="nv">$NODE</span>
+</pre></div>
+</div>
+<p>Now describe the postgres-encrypted pod to see what happens when you try to mount a volume without the key:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl describe po <span class="nv">$POSTGRES_POD</span> -n postgres
+</pre></div>
+</div>
+<p>You should see an error in the events that looks like this:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>Events:
+  Type     Reason       Age                 From                 Message
+  ----     ------       ----                ----                 -------
+  Normal   Scheduled    &lt;unknown&gt;                                Successfully assigned postgres/postgres-encrypted-586fc95d7-72p9c to aws-node-2
+  Warning  FailedMount  10s                 kubelet, aws-node-2  Unable to attach or mount volumes: unmounted <span class="nv">volumes</span><span class="o">=[</span>postgres-data<span class="o">]</span>, unattached <span class="nv">volumes</span><span class="o">=[</span>postgres-data default-token-m29gt<span class="o">]</span>: timed out waiting <span class="k">for</span> the condition
+  Warning  FailedMount  3s <span class="o">(</span>x9 over 2m12s<span class="o">)</span>  kubelet, aws-node-2  MountVolume.SetUp failed <span class="k">for</span> volume <span class="s2">&quot;pvc-8347e24a-75ef-4fa9-9e18-03cb3dfa8866&quot;</span> : rpc error: <span class="nv">code</span> <span class="o">=</span> Internal <span class="nv">desc</span> <span class="o">=</span> failed  to attach volume: Unable to get secret <span class="o">[</span>postgres-encryption-key<span class="o">]</span> due to: Failed to get secret <span class="o">[</span>postgres-encryption-key<span class="o">]</span>. Err: secrets <span class="s2">&quot;postgres-encryption-key&quot;</span> not found
+</pre></div>
+</div>
+<p>Let’s delete the postgres-encrypted deployment and volume:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl delete deploy postgres-encrypted -n postgres
+kubectl delete pvc postgres-data-encrypted -n postgres
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-snapshot">
+<h2>Volume snapshot<a class="headerlink" href="#volume-snapshot" title="Permalink to this headline">¶</a></h2>
+<p>Taking a snapshot is very easy, just use the VolumeSnapshot resource:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">volumesnapshot.external-storage.k8s.io/v1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">VolumeSnapshot</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-postgres-snapshot</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">persistentVolumeClaimName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-data</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Now we have a snapshot we can describe:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl describe volumesnapshot px-postgres-snapshot -n postgres
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-snapshot-restore">
+<h2>Volume snapshot restore<a class="headerlink" href="#volume-snapshot-restore" title="Permalink to this headline">¶</a></h2>
+<p>To test the snapshot restore we’re going to drop our px-demo database and show we can recover it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;drop database pxdemo;&quot;</span>
+</pre></div>
+</div>
+<p>We can check that our query now fails:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>In order to recover our database, we will use the VolumeSnapshotRestore resource, we’ll watch to see as stork stops postgres, recovers the volume, and starts the database up again (the pod will go in pending mode until the volume is recovered):</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">VolumeSnapshotRestore</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-snap-restore</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">sourceName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">px-postgres-snapshot</span>
+  <span class="nt">sourceNamespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+<span class="l l-Scalar l-Scalar-Plain">kubectl get po -n postgres -w</span>
+</pre></div>
+</div>
+<p>Once the pod is running again we can check that our data has been restored:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="volume-resize-automate-with-autopilot">
+<h2>Volume resize - automate with autopilot<a class="headerlink" href="#volume-resize-automate-with-autopilot" title="Permalink to this headline">¶</a></h2>
+<p>In this test we’re going to use autopilot to resize the postgres PVC. First, let’s make sure you have prometheus running and autopilot is able to read metrics from it. If you followed the install instructions you should see the prometheus pods running and autopilot should be using the <a class="reference external" href="http://px-prometheus:9090">http://px-prometheus:9090</a> URL:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get po -n portworx -lapp<span class="o">=</span>prometheus
+kubectl get svc -n portworx px-prometheus
+kubectl describe cm -n portworx autopilot-config
+</pre></div>
+</div>
+<p>Now that we know autopilot is configured right we can create an autopilot rule:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">autopilot.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">AutopilotRule</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">volume-resize</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">portworx</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="c1">##### selector filters the objects affected by this rule given labels</span>
+  <span class="nt">selector</span><span class="p">:</span>
+    <span class="nt">matchLabels</span><span class="p">:</span>
+    <span class="nt">app</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+  <span class="c1">##### conditions are the symptoms to evaluate. All conditions are AND&#39;ed</span>
+  <span class="nt">conditions</span><span class="p">:</span>
+    <span class="c1"># volume usage should be less than 50%</span>
+    <span class="nt">expressions</span><span class="p">:</span>
+    <span class="p p-Indicator">-</span> <span class="nt">key</span><span class="p">:</span> <span class="s">&quot;100</span><span class="nv"> </span><span class="s">*</span><span class="nv"> </span><span class="s">(px_volume_usage_bytes</span><span class="nv"> </span><span class="s">/</span><span class="nv"> </span><span class="s">px_volume_capacity_bytes)&quot;</span>
+      <span class="nt">operator</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Gt</span>
+      <span class="nt">values</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&quot;50&quot;</span>
+  <span class="c1">##### action to perform when condition is true</span>
+  <span class="nt">actions</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">openstorage.io.action.volume/resize</span>
+    <span class="nt">params</span><span class="p">:</span>
+      <span class="c1"># resize volume by scalepercentage of current size</span>
+      <span class="nt">scalepercentage</span><span class="p">:</span> <span class="s">&quot;100&quot;</span>
+      <span class="c1"># volume capacity should not exceed 400GiB</span>
+      <span class="nt">maxsize</span><span class="p">:</span> <span class="s">&quot;100Gi&quot;</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>The rule will be created in the portworx namespace and should transition to Normal, just get the events for the rule using this command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get events --field-selector involvedObject.kind<span class="o">=</span>AutopilotRule,involvedObject.name<span class="o">=</span>volume-resize --all-namespaces --sort-by .lastTimestamp
+</pre></div>
+</div>
+<p>You should see the following output:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>NAMESPACE   LAST SEEN   TYPE     REASON       OBJECT                        MESSAGE
+default     107s        Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">Initializing</span> <span class="o">=</span>&gt; Normal
+</pre></div>
+</div>
+<p>Now, if you tested all of the above DR scenarios you should have a postgres volume with about 2.4 GB of data used (px-demo,px-demo-2, and px-demo-3 each have 800MB of data). You can confirm that with the following query:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- df -m <span class="p">|</span> grep postgres
+</pre></div>
+</div>
+<p>Our initial volume size was set to 5GB so we should be able to trigger the above rule by creating running one more pgbench test:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;create database pxdemo4;&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- pgbench -i -s <span class="m">50</span> pxdemo4
+</pre></div>
+</div>
+<p>Watch the events as Autopilot detects the condition and resizes the volume:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch <span class="s2">&quot;kubectl get events --field-selector involvedObject.kind=AutopilotRule,involvedObject.name=volume-resize --all-namespaces --sort-by .lastTimestamp&quot;</span>
+</pre></div>
+</div>
+<p>It will take a little while before the rule triggers (it’s good not to overreact), once you see all of the below events that means the volume has been resized:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>NAMESPACE   LAST SEEN   TYPE     REASON       OBJECT                        MESSAGE
+default     8m38s       Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">Initializing</span> <span class="o">=</span>&gt; Normal
+default     53s         Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">Normal</span> <span class="o">=</span>&gt; Triggered
+default     17s         Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">Triggered</span> <span class="o">=</span>&gt; ActiveActionsPending
+default     13s         Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">ActiveActionsPending</span> <span class="o">=</span>&gt; ActiveActionsInProgress
+default     11s         Normal   Transition   autopilotrule/volume-resize   rule: volume-resize:pvc-7f609f60-886a-4a6d-9ba3-2a741fe886a3 transition from <span class="nv">ActiveActionsInProgress</span> <span class="o">=</span>&gt; ActiveActionsTaken
+</pre></div>
+</div>
+<p>You can now see that the PVC is 10 GB in size:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get pvc -n postgres
+</pre></div>
+</div>
+<p>And the database didn’t need to be restarted and is now below the 50% threshold again:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- df -m <span class="p">|</span> grep postgres
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="ch_resilience.html" class="btn btn-neutral float-right" title="Resilience" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="ch_installation.html" class="btn btn-neutral float-left" title="Installation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Pure Storage Inc..
+      <span class="lastupdated">
+        Last updated on 2021-06-01 01:04.
+      </span>
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
