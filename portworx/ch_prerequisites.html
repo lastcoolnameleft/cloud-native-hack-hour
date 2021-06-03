@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Portworx Microsoft Azure Instructions &mdash; Portworx Microsoft GBB Labs 0.1 documentation</title>
+  <title>Portworx Microsoft Global Blackbelts Lab Instructions &mdash; Portworx MS-GBB Lab Instructions 0.1 documentation</title>
   
 
   
@@ -43,7 +43,7 @@
     
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Installation" href="ch_installation.html" />
-    <link rel="prev" title="Portworx Proof of Concept Instructions" href="index.html" /> 
+    <link rel="prev" title="Portworx Microsoft Global Blackbelts Lab Instructions" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,7 +57,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Portworx Microsoft GBB Labs
+            <a href="index.html" class="icon icon-home"> Portworx MS-GBB Lab Instructions
           
 
           
@@ -93,13 +93,14 @@
             
             
               <ul class="current">
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Portworx Microsoft Azure Instructions</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Portworx Microsoft Global Blackbelts Lab Instructions</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ch_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_functional_testing.html">Functional Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_resilience.html">Resilience</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_monitoring.html">Monitoring</a></li>
 </ul>
 
             
@@ -115,7 +116,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Portworx Microsoft GBB Labs</a>
+          <a href="index.html">Portworx MS-GBB Lab Instructions</a>
         
       </nav>
 
@@ -148,7 +149,7 @@
     
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
         
-      <li>Portworx Microsoft Azure Instructions</li>
+      <li>Portworx Microsoft Global Blackbelts Lab Instructions</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -165,32 +166,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="portworx-microsoft-azure-instructions">
-<h1>Portworx Microsoft Azure Instructions<a class="headerlink" href="#portworx-microsoft-azure-instructions" title="Permalink to this headline">¶</a></h1>
-<p>This document will walk you through today’s hands-on experience with  Portworx, by Pure Storage.</p>
+  <div class="section" id="portworx-proof-of-concept-instructions">
+<h1>Portworx Microsoft Global Blackbelts Lab Instructions<a class="headerlink" href="#portworx-proof-of-concept-instructions" title="Permalink to this headline">¶</a></h1>
+<p>This document will help you perform a complete POC of Portworx, by Pure Storage.</p>
 <p>The sections below outline a series of steps that map to a test plan you can track using the <a class="reference external" href="https://github.com/fmrtl73/px-poc/blob/main/Portworx%20POC%20PLAN.xlsx?raw=true">Portworx_POC_Plan.xlsx</a> spreadsheet in this repository.</p>
 <p>All tests in the plan have a corresponding section of this document with the instructions on how to run the test and how to validate the results.</p>
 <p>Kubernetes artifacts for the different tests are available in the px-poc/yamls folder and are based on public repository container images. For air-gapped clusters, there is a script provided to upload these images to your registry and to modify the yaml artifacts to use your repository url and credentials.</p>
 <p>The test plan is focused on kubernetes and is validated against all major kubernetes distributions.</p>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
-<p>Two Kubernetes clusters with network connectivity between them. Each cluster should have the following resources at a minimum:</p>
+<p>One Kubernetes clusters with the following resources at a minimum:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p>4 VMs (Single master and 3 workers nodes)</p></li>
-<li><p>4 VCPUs and 16 GB of RAM on worker nodes</p></li>
-<li><p>50 GB for base OS</p></li>
-<li><p>2 x 100GB drives for each of the worker nodes.</p></li>
+<li><p>4 workers nodes - Please try to use Availability Zones in the same Region for a highly available cluster</p></li>
+<li><p>4 VCPUs and 8 GB of RAM on worker nodes</p></li>
+<li><p>30 GB for base OS</p></li>
+<li><p>10 Gb network connection between worker nodes</p></li>
 </ul>
 </div></blockquote>
 <p>For more details on networking/operating system requirements please refer to the <a class="reference external" href="https://docs.portworx.com/start-here-installation">Portworx documentation</a>.</p>
-<p>Access to an object store endpoint to test backup/restore functionality.</p>
-<blockquote>
-<div><ul class="simple">
-<li><p>100GB of available space</p></li>
-</ul>
-</div></blockquote>
-<p>If an objectstore is not available, instructions on deploying Minio are included in the installation section.</p>
 </div>
 </div>
 
@@ -201,7 +195,7 @@
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="ch_installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="index.html" class="btn btn-neutral float-left" title="Portworx Proof of Concept Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="Portworx Microsoft Global Blackbelts Lab Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
@@ -210,7 +204,7 @@
     <p>
         &#169; Copyright 2021, Pure Storage Inc..
       <span class="lastupdated">
-        Last updated on 2021-06-01 01:04.
+        Last updated on 2021-06-02 02:41.
       </span>
 
     </p>

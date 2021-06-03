@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Functional Testing &mdash; Portworx Microsoft GBB Labs 0.1 documentation</title>
+  <title>Functional Testing &mdash; Portworx MS-GBB Lab Instructions 0.1 documentation</title>
   
 
   
@@ -57,7 +57,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Portworx Microsoft GBB Labs
+            <a href="index.html" class="icon icon-home"> Portworx MS-GBB Lab Instructions
           
 
           
@@ -93,7 +93,7 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Azure Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Global Blackbelts Lab Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Functional Testing</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#volume-provisioning">Volume Provisioning</a></li>
@@ -102,6 +102,12 @@
 <li class="toctree-l2"><a class="reference internal" href="#failover-test-postgres">Failover Test - Postgres</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#read-write-many-nginx-deployment">Read Write Many - nginx deployment</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#scale-out-nginx">Scale out nginx</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#backup-restore-postgres-from-cluster-1-to-cluster-2">Backup/Restore Postgres from cluster-1 to cluster-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#app-consistent-backup-rules">App Consistent Backup Rules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#schedule-dr-for-postgres-from-cluster-1-to-cluster-2">Schedule DR for Postgres from cluster-1 to cluster-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-dr-postgres-instance-with-namespace-clone-on-cluster-2">Test DR Postgres instance with namespace clone on cluster-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-dr-failover-of-postgres-from-cluster-1-to-cluster-2">Test DR failover of Postgres from cluster-1 to cluster-2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-dr-fail-back-of-postgres-from-cluster-2-to-cluster-1">Test DR fail-back of Postgres from cluster-2 to cluster-1</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#volume-encryption-cluster-wide-encryption">Volume Encryption - cluster wide encryption</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#volume-encryption-volume-granular-encryption">Volume Encryption - volume granular encryption</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#volume-snapshot">Volume snapshot</a></li>
@@ -110,6 +116,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ch_resilience.html">Resilience</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_monitoring.html">Monitoring</a></li>
 </ul>
 
             
@@ -125,7 +132,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Portworx Microsoft GBB Labs</a>
+          <a href="index.html">Portworx MS-GBB Lab Instructions</a>
         
       </nav>
 
@@ -373,6 +380,252 @@ kubectl cp -n nginx index.html <span class="nv">$POD</span>:/usr/share/nginx/htm
 </div>
 <p>Verify that all three pods are able to mount the same volume even though they are running on different nodes:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch kubectl get po -n nginx -owide
+</pre></div>
+</div>
+</div>
+<div class="section" id="backup-restore-postgres-from-cluster-1-to-cluster-2">
+<h2>Backup/Restore Postgres from cluster-1 to cluster-2<a class="headerlink" href="#backup-restore-postgres-from-cluster-1-to-cluster-2" title="Permalink to this headline">¶</a></h2>
+<p>Let’s create a backup of our postgres namespace using PX-Backup. You can follow the instructions from the documentation, it is very straightforward:</p>
+<p><a class="reference external" href="https://backup.docs.portworx.com/use-px-backup/backup-restore/perform-backup/">https://backup.docs.portworx.com/use-px-backup/backup-restore/perform-backup/</a></p>
+<p>You can monitor the backup while it’s happening by using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl describe applicationbackup -n postgres
+</pre></div>
+</div>
+<p>Once your backup is successful the applicationbackup object will no longer exist in the cluster-1 postgres namespace.</p>
+<p>Take a look at the minio browser UI, or whatever S3 you configured in step 1.4 above, to see the contents of the buckets which will now have the backup objects associated with the postgres namespace backup.</p>
+<p>Now we can restore our backup to cluster-2 by following the instructions in the docs:</p>
+<p><a class="reference external" href="https://backup.docs.portworx.com/use-px-backup/backup-restore/restore-backup/">https://backup.docs.portworx.com/use-px-backup/backup-restore/restore-backup/</a></p>
+<p>You can switch context to cluster-2 and see the restore operation happening using the following command:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2</span>
+kubectl describe applicationrestore -n postgres
+</pre></div>
+</div>
+<p>Once the restore has completed and the pod is running you can inspect the content of the database to see your 5 Million records have been restored:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="app-consistent-backup-rules">
+<h2>App Consistent Backup Rules<a class="headerlink" href="#app-consistent-backup-rules" title="Permalink to this headline">¶</a></h2>
+<p>For an application consistent backup of Postgres you can follow these directions:</p>
+<p><a class="reference external" href="https://backup.docs.portworx.com/use-px-backup/backup-stateful-applications/postgres/">https://backup.docs.portworx.com/use-px-backup/backup-stateful-applications/postgres/</a></p>
+<p>Configure the rule and repeat step 2.7 by selecting the rule during the backup.</p>
+</div>
+<div class="section" id="schedule-dr-for-postgres-from-cluster-1-to-cluster-2">
+<h2>Schedule DR for Postgres from cluster-1 to cluster-2<a class="headerlink" href="#schedule-dr-for-postgres-from-cluster-1-to-cluster-2" title="Permalink to this headline">¶</a></h2>
+<p>Delete the postgres namespace from cluster-2. We will now setup a DR schedule to replicate the Postgres namespace from cluster-1 to cluster-2.</p>
+<p>Since we already have a clusterpair in the kube-system namespace we will use it here.</p>
+<p>First, let’s create a schedule with a 5 minute interval:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">SchedulePolicy</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5min-policy</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">policy</span><span class="p">:</span>
+  <span class="nt">interval</span><span class="p">:</span>
+    <span class="nt">intervalMinutes</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Second, we will create a migration schedule:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">MigrationSchedule</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgresmigrationschedule</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">template</span><span class="p">:</span>
+    <span class="nt">spec</span><span class="p">:</span>
+      <span class="nt">clusterPair</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cluster-2</span>
+      <span class="nt">includeResources</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+      <span class="nt">startApplications</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">false</span>
+      <span class="nt">namespaces</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+  <span class="nt">schedulePolicyName</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">5min-policy</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Now let’s monitor the migration object that will be created by the schedule:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl describe migration -n kube-system
+</pre></div>
+</div>
+<p>And finally, let’s see that the migration created the namespace and objects on cluster-2.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+kubectl get all,pvc -n postgres
+</pre></div>
+</div>
+<p>Our migration schedule is set for ever 5 minutes so let’s add a secret to cluster-1 and see that the next migration will add that secret to cluster-2.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-1 first</span>
+kubectl create secret generic <span class="nb">test</span> -n postgres --from-literal<span class="o">=</span><span class="nv">key</span><span class="o">=</span>value
+</pre></div>
+</div>
+<p>Wait for the next migration to complete and then see that the secret was created in the cluster-2 namespace:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+kubectl get secret <span class="nb">test</span> -n postgres
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-dr-postgres-instance-with-namespace-clone-on-cluster-2">
+<h2>Test DR Postgres instance with namespace clone on cluster-2<a class="headerlink" href="#test-dr-postgres-instance-with-namespace-clone-on-cluster-2" title="Permalink to this headline">¶</a></h2>
+<p>Our namespace in cluster-2 has no pods running because we want to allow incremental changes to the data to be reflected on the DR site and mounting the volumes will prevent these changes from occurring.</p>
+<p>In order to test that are data is being updated we’re going to perform a clone of the postgres namespace.</p>
+<p>Note: If you’re cloning an application across namespaces on OpenShift, you must modify your destination namespace to include the same supplemental group annotation values as your source namespace:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="nt">annotations</span><span class="p">:</span>
+  <span class="nt">openshift.io/sa.scc.mcs</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">s0:c26,c25</span>
+  <span class="nt">openshift.io/sa.scc.supplemental-groups</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1001990000/10000</span>
+  <span class="nt">openshift.io/sa.scc.uid-range</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">1001990000/10000</span>
+</pre></div>
+</div>
+<p>Now let’s create our clone:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+<span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ApplicationClone</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">clone-postgres</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">sourceNamespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+  <span class="nt">destinationNamespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-clone</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Check that all the objects in the namespace have been cloned:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get all,pvc,secret -n postgres-clone
+</pre></div>
+</div>
+<p>Now scale up the Postgres database deployment and make sure it starts successfully:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl scale deploy postgres -n postgres-clone --replicas<span class="o">=</span><span class="m">1</span>
+kubectl get po -n postgres-clone -w
+</pre></div>
+</div>
+<p>Finally, check that your data is intact:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres-clone -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres-clone <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>We can now delete the cloned namespace and test incremental data updates to our postgres database.</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl delete ns postgres-clone
+</pre></div>
+</div>
+<p>Let’s go back to cluster-1 and add some data to postgres:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-1 first</span>
+<span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;create database pxdemo2;&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- pgbench -i -s <span class="m">50</span> pxdemo2
+</pre></div>
+</div>
+<p>Check that pxdemo2 has 5 million records:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo2 -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>Wait for the next migration to happen:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch kubectl get migration -n kube-system
+</pre></div>
+</div>
+<p>Once the next migration has completed we can clone our postgres namespace in cluster-2:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+<span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">ApplicationClone</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">clone-postgres</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">sourceNamespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+  <span class="nt">destinationNamespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">postgres-clone</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>Scale up the cloned database:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl scale deploy postgres -n postgres-clone --replicas<span class="o">=</span><span class="m">1</span>
+kubectl get po -n postgres-clone -w
+</pre></div>
+</div>
+<p>Finally, check that the data from the pxdemo2 database has been incrementally restored on our DR site:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres-clone -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres-clone <span class="nv">$POSTGRES_POD</span> -- psql pxdemo2 -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-dr-failover-of-postgres-from-cluster-1-to-cluster-2">
+<h2>Test DR failover of Postgres from cluster-1 to cluster-2<a class="headerlink" href="#test-dr-failover-of-postgres-from-cluster-1-to-cluster-2" title="Permalink to this headline">¶</a></h2>
+<p>To failover the application from cluster-1 to cluster-2 we will stop the migration schedule on cluster-1 and launch our database in cluster-2.</p>
+<p>First let’s suspend the migration on cluster-1:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-1 first</span>
+storkctl <span class="nb">suspend</span> migrationschedules -n kube-system postgresmigrationschedule
+</pre></div>
+</div>
+<p>Now we will launch the database in cluster-2:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+storkctl activate migrations -n postgres
+kubectl get po -n postgres -w
+</pre></div>
+</div>
+<p>Now that the database is up we can verify our data is all there:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo2 -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="test-dr-fail-back-of-postgres-from-cluster-2-to-cluster-1">
+<h2>Test DR fail-back of Postgres from cluster-2 to cluster-1<a class="headerlink" href="#test-dr-fail-back-of-postgres-from-cluster-2-to-cluster-1" title="Permalink to this headline">¶</a></h2>
+<p>Before we failback to cluster-1, let’s add data to cluster-2’s database:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql -c <span class="s2">&quot;create database pxdemo3;&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- pgbench -i -s <span class="m">50</span> pxdemo3
+</pre></div>
+</div>
+<p>Now let’s do a one time migration from cluster-2 to cluster-1. In order to do that we will need to set up a clusterpair object that points to cluster-1. You can go back to step 1.5 and perform all the same steps but this time the source will be cluster-2 and the target will be cluster-1.</p>
+<p>Once you have the clusterpair initialized successfully we can deactivate our database on cluster-2:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+storkctl deactivate migrations -n postgres
+</pre></div>
+</div>
+<p>Before we migrate the database back to cluster-1, let’s delete the old database we have on cluster-1:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-1 first</span>
+kubectl delete ns postgres
+</pre></div>
+</div>
+<p>Now we are ready to failback to cluster-1:</p>
+<div class="highlight-yaml notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-2 first</span>
+<span class="l l-Scalar l-Scalar-Plain">cat &lt;&lt; EOF | kubectl apply -f -</span>
+<span class="l l-Scalar l-Scalar-Plain">apiVersion</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">stork.libopenstorage.org/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Migration</span>
+<span class="nt">metadata</span><span class="p">:</span>
+  <span class="nt">name</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">failback-postgres</span>
+  <span class="nt">namespace</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">kube-system</span>
+<span class="nt">spec</span><span class="p">:</span>
+  <span class="nt">clusterPair</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">cluster-1</span>
+  <span class="nt">includeResources</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">startApplications</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">true</span>
+  <span class="nt">namespaces</span><span class="p">:</span>
+  <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">postgres</span>
+<span class="l l-Scalar l-Scalar-Plain">EOF</span>
+</pre></div>
+</div>
+<p>You can monitor the migration to make sure it’s successful:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl describe migration failback-postgres -n kube-system
+</pre></div>
+</div>
+<p>Once the migration is successful we can go to cluster-1 and make sure everything is running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># switch context to cluster-1 first</span>
+kubectl get po -n postgres -w
+</pre></div>
+</div>
+<p>Once the database is running on cluster-1 we can check that all our data is there:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo2 -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo3 -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>Finally, we can resume our migration schedule from cluster-1 to cluster-2:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>storkctl resume migrationschedule postgresmigrationschedule -n kube-system
 </pre></div>
 </div>
 </div>
@@ -645,7 +898,7 @@ default     11s         Normal   Transition   autopilotrule/volume-resize   rule
     <p>
         &#169; Copyright 2021, Pure Storage Inc..
       <span class="lastupdated">
-        Last updated on 2021-06-01 01:04.
+        Last updated on 2021-06-02 02:41.
       </span>
 
     </p>

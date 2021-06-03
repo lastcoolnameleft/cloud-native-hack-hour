@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Installation &mdash; Portworx Microsoft GBB Labs 0.1 documentation</title>
+  <title>Installation &mdash; Portworx MS-GBB Lab Instructions 0.1 documentation</title>
   
 
   
@@ -43,7 +43,7 @@
     
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Functional Testing" href="ch_functional_testing.html" />
-    <link rel="prev" title="Portworx Microsoft Azure Instructions" href="ch_prerequisites.html" /> 
+    <link rel="prev" title="Portworx Microsoft Global Blackbelts Lab Instructions" href="ch_prerequisites.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -57,7 +57,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Portworx Microsoft GBB Labs
+            <a href="index.html" class="icon icon-home"> Portworx MS-GBB Lab Instructions
           
 
           
@@ -93,7 +93,7 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Azure Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Global Blackbelts Lab Instructions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#environment-preparation">Environment preparation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#deploy-px-enterprise-to-cluster-1">Deploy PX-Enterprise to Cluster-1</a><ul>
@@ -103,13 +103,13 @@
 <li class="toctree-l3"><a class="reference internal" href="#install-the-portworx-kubectl-cli-pxc">Install the Portworx kubectl CLI - PXC</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#initialize-the-utility-to-use-the-portworx-namespace">Initialize the utility to use the portworx namespace</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#check-that-the-pxc-cli-is-working-correctly">Check that the pxc cli is working correctly</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#install-the-stork-ctl">Install the Stork CTL</a></li>
 </ul>
 </li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="ch_functional_testing.html">Functional Testing</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_resilience.html">Resilience</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_monitoring.html">Monitoring</a></li>
 </ul>
 
             
@@ -125,7 +125,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Portworx Microsoft GBB Labs</a>
+          <a href="index.html">Portworx MS-GBB Lab Instructions</a>
         
       </nav>
 
@@ -184,7 +184,7 @@
 </div>
 <div class="section" id="environment-preparation">
 <h2>Environment preparation<a class="headerlink" href="#environment-preparation" title="Permalink to this headline">¶</a></h2>
-<p>Deploy Portworx to each Kubernetes cluster using the Operator approach. Different environments have different requirements for enabling dynamic drive management in Portworx:</p>
+<p>Deploy Portworx to your Kubernetes cluster using the Operator approach. Different environments have different requirements for enabling dynamic drive management in Portworx:</p>
 <ul class="simple">
 <li><p>Azure requires a <a class="reference external" href="https://docs.portworx.com/portworx-install-with-kubernetes/cloud/azure/aks/1-prepare/#create-a-service-principal-and-secret-in-azure-ad">service principal and secret</a> to be created.</p></li>
 </ul>
@@ -194,32 +194,44 @@
 <p>To install you will generate a spec file and modify it before applying it.</p>
 <div class="section" id="generate-spec-file">
 <h3>Generate Spec File<a class="headerlink" href="#generate-spec-file" title="Permalink to this headline">¶</a></h3>
-<p>Let’s start with a basic spec file for your environment. To do that we’re going to set some environment variables:</p>
+<p>** Open your browser and navigate to <a class="reference external" href="https://central.portworx.com">https://central.portworx.com</a></p>
+<ol class="arabic simple">
+<li><p>Login with the account you created previously</p></li>
+<li><p>Select “Portworx Enterprise” and click next in the top section of the Spec Generator</p></li>
+<li><p>On the next page, select “Use the Portworx Operator”, Portworx Version = 2.7, and ETCD “Built-In”. Then click “Next”</p></li>
+<li><p>The following page allows you to configure your cloud environment: Select the following:</p></li>
+</ol>
+<blockquote>
+<div><ol class="loweralpha simple">
+<li><p>Select your environment: “Cloud”</p></li>
+<li><p>Select Cloud Platform: “AZURE”</p></li>
+<li><p>Configure storage devices: Select “Create Using a Spec”, then under “Select Volume Type” choose “Standard” and leave the size at 150GB. Click Next.</p></li>
+</ol>
+</div></blockquote>
+<ol class="arabic simple" start="5">
+<li><p>On the Networking Screen, Click Next to accept the defaults</p></li>
+<li><p>On the Customize page: “Are use running on either of these?” : Choose “Azure Kubernetes Service (AKS)”. Then expand the “Advanced Settings” and check “Enable Monitoring”. Click Next.</p></li>
+<li><p>On the final page, you can provide a name and tags to save the spec file for later access and use. Please do so.</p></li>
+</ol>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Edit these variables to make sure to pick the correct disk type and cloud type setting for your environment!</p>
+<p>On this page, there are links to install Portworx, but it will place the installation in the kube-system namespace. On managed solutions like AKS, we recommend installing to a different namespace. Follow these instructions to retrieve your spec file and change the namespace.</p>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># st the version of Portworx to install</span>
-<span class="nv">PXVER</span><span class="o">=</span><span class="m">2</span>.7.0
-<span class="c1"># choose from gp2|io1|ssd|standard|premium|zeroedthick (valid storage type for your cloud provider)</span>
-<span class="nv">disk_type</span><span class="o">=</span>zeroedthick
-<span class="c1"># change this to higher size if you are doing benchmarking</span>
-<span class="nv">disk_size</span><span class="o">=</span><span class="m">150</span>
-<span class="c1"># choose from eks|aks|gke|pks or leave empty</span>
-<span class="nv">env</span><span class="o">=</span>
+<p>Install the operator:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f <span class="s1">&#39;https://install.portworx.com/2.7?comp=pxoperator&#39;</span>
 </pre></div>
 </div>
-<p>Now that you have chosen the correct settings based on your environment you can generate and download the spec file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -Lo px-spec.yaml <span class="s2">&quot;https://install.portworx.com/</span><span class="nv">$PXVER</span><span class="s2">?operator=true&amp;mc=false&amp;kbver=&amp;b=true&amp;s=%22type%3D</span><span class="si">${</span><span class="nv">disk_type</span><span class="si">}</span><span class="s2">%2Csize%3D</span><span class="si">${</span><span class="nv">disk_size</span><span class="si">}</span><span class="s2">%22&amp;kd=type%3Dgp2%2Csize%3D150&amp;c=px-cluster&amp;eks=true&amp;stork=true&amp;mon=true&amp;st=k8s&amp;promop=true&quot;</span>
+<p>Download your Saved Spec from Portworx Central:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -Lo px-spec.yaml https://install.portworx.com/2.7?operator<span class="o">=</span>true<span class="p">&amp;</span><span class="nv">mc</span><span class="o">=</span>false<span class="p">&amp;</span><span class="nv">kbver</span><span class="o">=</span><span class="p">&amp;</span><span class="nv">b</span><span class="o">=</span>true<span class="p">&amp;</span><span class="nv">s</span><span class="o">=</span>%22type%3DStandard_LRS%2Csize%3D150%22<span class="p">&amp;</span><span class="nv">kd</span><span class="o">=</span>type%3DPremium_LRS%2Csize%3D150<span class="p">&amp;</span><span class="nv">c</span><span class="o">=</span>px-cluster-8fe65c3e-621d-4fc6-b951-c480c62061fc<span class="p">&amp;</span><span class="nv">aks</span><span class="o">=</span>true<span class="p">&amp;</span><span class="nv">stork</span><span class="o">=</span>true<span class="p">&amp;</span><span class="nv">csi</span><span class="o">=</span>true<span class="p">&amp;</span><span class="nv">mon</span><span class="o">=</span>true<span class="p">&amp;</span><span class="nv">st</span><span class="o">=</span>k8s<span class="p">&amp;</span><span class="nv">promop</span><span class="o">=</span><span class="nb">true</span>
 </pre></div>
 </div>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -Lo px-spec.yaml <span class="s2">&quot;https://install.portworx.com/</span><span class="nv">$PXVER</span><span class="s2">?operator=true&amp;mc=false&amp;kbver=&amp;b=true&amp;kd=%2Fdev%2F</span><span class="si">${</span><span class="nv">etcd_drive</span><span class="si">}</span><span class="s2">&amp;c=px-cluster&amp;stork=true&amp;mon=true&amp;st=k8s&amp;promop=true&quot;</span>
-</pre></div>
-</div>
-<p><strong>Modify Spec File</strong></p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>For mac users, please install gnu-sed to make your life easier: <a class="reference external" href="https://medium.com/&#64;bramblexu/install-gnu-sed-on-mac-os-and-set-it-as-default-7c17ef1b8f64">gnu-sed installation instructions</a></p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following instructions are to be executed on either Linux or MacOS via CLI. The values can also be changed with a text editor. If you choose to edit in a text editor, verify your work before you apply the spec file.</p>
 </div>
 <p>Change the namespace:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>sed -i <span class="s1">&#39;s/kube-system/portworx/g&#39;</span> px-spec.yaml
@@ -236,62 +248,6 @@
 </div>
 <div class="section" id="deployment">
 <h3>Deployment<a class="headerlink" href="#deployment" title="Permalink to this headline">¶</a></h3>
-<p>Once you have created a spec file you can deploy the operator:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl create ns portworx
-curl -Lo px-operator.yaml https://install.portworx.com/?comp<span class="o">=</span>pxoperator
-sed -i <span class="s1">&#39;s/kube-system/portworx/g&#39;</span> px-operator.yaml
-kubectl create -f px-operator.yaml
-</pre></div>
-</div>
-<p>And finally, apply the px-spec.yaml spec file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f px-spec.yaml
-</pre></div>
-</div>
-</div>
-<div class="section" id="air-gapped-deployment">
-<h3>Air-gapped Deployment<a class="headerlink" href="#air-gapped-deployment" title="Permalink to this headline">¶</a></h3>
-<p>Set your registry location:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># set your registry location (my-registry.my-company.com for example)</span>
-<span class="nv">REGISTRY_LOCATION</span><span class="o">=</span>my-registry.my-company.com
-</pre></div>
-</div>
-<p>And append the registry location setting to your spec file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span> <span class="s2">&quot;  customImageRegistry: </span><span class="nv">$REGISTRY_LOCATION</span><span class="s2">&quot;</span> &gt;&gt; px-spec.yaml
-</pre></div>
-</div>
-<p>If the registry requires credentials we need to create a registry secret.</p>
-<p>Edit these variables with your correct information:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">DOCKER_REGISTRY_SERVER</span><span class="o">=</span>my.registry.com
-<span class="nv">DOCKER_USER</span><span class="o">=</span>username
-<span class="nv">DOCKER_PASSWORD</span><span class="o">=</span>password
-<span class="nv">DOCKER_EMAIL</span><span class="o">=</span>username@company.com
-</pre></div>
-</div>
-<p>Use the following command to create the docker registry secret:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl create secret docker-registry regcred -n portworx <span class="se">\</span>
-    --docker-server<span class="o">=</span><span class="nv">$DOCKER_REGISTRY_SERVER</span> <span class="se">\</span>
-    --docker-username<span class="o">=</span><span class="nv">$DOCKER_USER</span> <span class="se">\</span>
-    --docker-password<span class="o">=</span><span class="nv">$DOCKER_PASSWORD</span> <span class="se">\</span>
-    --docker-email<span class="o">=</span><span class="nv">$DOCKER_EMAIL</span>
-</pre></div>
-</div>
-<p>And append the registry secret setting to our spec file:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">echo</span> <span class="s2">&quot;  imagePullSecret: regcred&quot;</span> &gt;&gt; px-spec.yaml
-</pre></div>
-</div>
-<p>Download the operator spec and modify it to deploy to the portworx namespace:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl create ns portworx
-curl -Lo px-operator.yaml https://install.portworx.com/?comp<span class="o">=</span>pxoperator
-sed -i <span class="s1">&#39;s/kube-system/portworx/g&#39;</span> px-operator.yaml
-kubectl apply -f px-operator.yaml
-</pre></div>
-</div>
-<p>Modify the specification file to use your registry and deploy it:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl patch serviceaccount portworx-operator -n portworx -p <span class="s1">&#39;{&quot;imagePullSecrets&quot;: [{&quot;name&quot;: &quot;regcred&quot;}]}&#39;</span>
-sed -i <span class="s2">&quot;s/image: portworx/image: </span><span class="si">${</span><span class="nv">REGISTRY_LOCATION</span><span class="si">}</span><span class="s2">\/portworx/g&quot;</span> px-operator.yaml
-kubectl apply -f px-operator.yaml
-</pre></div>
-</div>
 <p>And finally, apply the px-spec.yaml spec file:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl apply -f px-spec.yaml
 </pre></div>
@@ -310,7 +266,7 @@ kubectl apply -f px-operator.yaml
 <p>Finally, install the pxc cli utility along with the pxc-pxctl component.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>Run the following commands from the home directory of the git repository.</p>
+<p>** Run the following commands from the home directory of the folder where you extracted the zip file **</p>
 </div>
 <p><strong>For Linux:</strong></p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>curl -Lo /tmp/pxc.tar.gz https://github.com/portworx/pxc/releases/download/v0.33.0/pxc-v0.33.0.linux.amd64.tar.gz
@@ -352,23 +308,6 @@ chmod +x /usr/local/bin/pxc-pxctl
 </pre></div>
 </div>
 </div>
-<div class="section" id="install-the-stork-ctl">
-<h3>Install the Stork CTL<a class="headerlink" href="#install-the-stork-ctl" title="Permalink to this headline">¶</a></h3>
-<p><strong>On Linux:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">STORK_POD</span><span class="o">=</span><span class="k">$(</span>kubectl get pods -n portworx -l <span class="nv">name</span><span class="o">=</span>stork -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="k">)</span> <span class="o">&amp;&amp;</span>
-kubectl cp -n portworx <span class="nv">$STORK_POD</span>:/storkctl/linux/storkctl ./storkctl
-sudo mv storkctl /usr/local/bin <span class="o">&amp;&amp;</span>
-sudo chmod +x /usr/local/bin/storkctl
-</pre></div>
-</div>
-<p><strong>On OSX:</strong></p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">STORK_POD</span><span class="o">=</span><span class="k">$(</span>kubectl get pods -n portworx -l <span class="nv">name</span><span class="o">=</span>stork -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="k">)</span> <span class="o">&amp;&amp;</span>
-kubectl cp -n portworx <span class="nv">$STORK_POD</span>:/storkctl/darwin/storkctl ./storkctl
-sudo mv storkctl /usr/local/bin <span class="o">&amp;&amp;</span>
-sudo chmod +x /usr/local/bin/storkctl
-</pre></div>
-</div>
-</div>
 </div>
 </div>
 
@@ -379,7 +318,7 @@ sudo chmod +x /usr/local/bin/storkctl
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
         <a href="ch_functional_testing.html" class="btn btn-neutral float-right" title="Functional Testing" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="ch_prerequisites.html" class="btn btn-neutral float-left" title="Portworx Microsoft Azure Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="ch_prerequisites.html" class="btn btn-neutral float-left" title="Portworx Microsoft Global Blackbelts Lab Instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
@@ -388,7 +327,7 @@ sudo chmod +x /usr/local/bin/storkctl
     <p>
         &#169; Copyright 2021, Pure Storage Inc..
       <span class="lastupdated">
-        Last updated on 2021-06-01 01:04.
+        Last updated on 2021-06-02 02:41.
       </span>
 
     </p>

@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>Resilience &mdash; Portworx Microsoft GBB Labs 0.1 documentation</title>
+  <title>Resilience &mdash; Portworx MS-GBB Lab Instructions 0.1 documentation</title>
   
 
   
@@ -42,6 +42,7 @@
 
     
     <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Monitoring" href="ch_monitoring.html" />
     <link rel="prev" title="Functional Testing" href="ch_functional_testing.html" /> 
 </head>
 
@@ -56,7 +57,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> Portworx Microsoft GBB Labs
+            <a href="index.html" class="icon icon-home"> Portworx MS-GBB Lab Instructions
           
 
           
@@ -92,14 +93,17 @@
             
             
               <ul class="current">
-<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Azure Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ch_prerequisites.html">Portworx Microsoft Global Blackbelts Lab Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="ch_functional_testing.html">Functional Testing</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Resilience</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#node-failure">Node failure</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#node-shutdown-no-quorum-lost">Node shutdown - no quorum lost</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#multi-node-failure-quorum-lost">Multi-node Failure - quorum lost</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#disk-failure-simulation">Disk failure (simulation)</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="ch_monitoring.html">Monitoring</a></li>
 </ul>
 
             
@@ -115,7 +119,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">Portworx Microsoft GBB Labs</a>
+          <a href="index.html">Portworx MS-GBB Lab Instructions</a>
         
       </nav>
 
@@ -393,6 +397,98 @@ pxctl volume inspect <span class="nv">$VOLID</span>
 </pre></div>
 </div>
 </div>
+<div class="section" id="multi-node-failure-quorum-lost">
+<h2>Multi-node Failure - quorum lost<a class="headerlink" href="#multi-node-failure-quorum-lost" title="Permalink to this headline">¶</a></h2>
+<p>Now we’re going to test how Portworx can recover quorum after it’s been lost. When you lose quorum the cluster as a whole cannot safely operate so you will not be able to create or use any volumes until quorum is re-established. What we are going to test here is how quickly that quorum can be re-established.</p>
+<p>To lose quorum you have to lose n/2 + 1 of your storage nodes. Only storage nodes contribute to quorum in Portworx. So if you have a 3 worker-node cluster all you need to do is shutdown 2 of your nodes and see that on the remaining node Portworx will not be in quorum and won’t allow any operations.</p>
+<p>After a a minute or so if you go to the surviving node you will see running the following output when running <cite>pxctl status</cite>, note that you have to pass in the <cite>-n &lt;surviving-node-name&gt;</cite> option to the pxctl command to be able to run <cite>pxctl status</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NODE</span><span class="o">=</span>&lt;surviving-node-name&gt;
+pxctl -n <span class="nv">$NODE</span> status
+&gt;&gt; Running pxctl on aws-node-2
+PX is not running on this host
+List of last known failures:
+Type  ID            Resource        Severity  Count  LastSeen    FirstSeen    Description
+NODE  PortworxMonitorSchedulerInitializationFailed  aws-node-2        ALARM    <span class="m">1</span>  Apr <span class="m">7</span> <span class="m">23</span>:03:41 UTC <span class="m">2021</span>  Apr <span class="m">7</span> <span class="m">23</span>:03:41 UTC <span class="m">2021</span>  Could not init scheduler <span class="s1">&#39;kubernetes&#39;</span>: Could not find my node <span class="k">in</span> Kubernetes cluster: Get https://10.96.0.1:443/api/v1/nodes: dial tcp <span class="m">10</span>.96.0.1:443: i/o timeout
+NODE  NodeStateChange          92257c6b-26f9-406a-afc2-4a7a454fd623  ALARM    <span class="m">1</span>  Apr <span class="m">7</span> <span class="m">23</span>:03:23 UTC <span class="m">2021</span>  Apr <span class="m">7</span> <span class="m">23</span>:03:23 UTC <span class="m">2021</span>  Node is not <span class="k">in</span> quorum. Waiting to connect to peer nodes on port <span class="m">9002</span>.
+NODE  NodeStartFailure        92257c6b-26f9-406a-afc2-4a7a454fd623  ALARM    <span class="m">1</span>  Apr <span class="m">7</span> <span class="m">23</span>:02:27 UTC <span class="m">2021</span>  Apr <span class="m">7</span> <span class="m">23</span>:02:27 UTC <span class="m">2021</span>  Failed to start Portworx: failed to parse network interfaces: Network interface Mgmt Interface is down
+NODE  InternalKvdbSetupFailed                  ALARM    <span class="m">1</span>  Apr <span class="m">7</span> <span class="m">22</span>:32:31 UTC <span class="m">2021</span>  Apr <span class="m">7</span> <span class="m">22</span>:32:31 UTC <span class="m">2021</span>  Failed to bootstrap internal kvdb: Failed to initialize k8s bootstrap: Failed to create configmap px-bootstrap-aws: Post https://10.96.0.1:443/api/v1/namespaces/kube-system/configmaps: dial tcp <span class="m">10</span>.96.0.1:443: i/o timeout
+<span class="nb">command</span> terminated with <span class="nb">exit</span> code <span class="m">1</span>
+</pre></div>
+</div>
+<p>Now let’s bring the nodes back online and watch as they get back in quorum. You can create a watch to see how quickly it happens:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch --color <span class="s2">&quot;kubectl -n </span><span class="nv">$NODE</span><span class="s2"> pxc pxctl status&quot;</span>
+</pre></div>
+</div>
+<p>The cluster should become fully operational after one or two minutes, depending on how fast your nodes boot up.</p>
+</div>
+<div class="section" id="disk-failure-simulation">
+<h2>Disk failure (simulation)<a class="headerlink" href="#disk-failure-simulation" title="Permalink to this headline">¶</a></h2>
+<p>To test disk failure we will put a pool into maintenance mode. What we will show is that in the case of the drive failing our postgres database will continue to operate without issue and the node where drive failure occurs will also continue to serve IO during the drive maintenance operation.</p>
+<p>First, let’s find out where the Postgres pod is currently running:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">NODE</span><span class="o">=</span><span class="sb">`</span>kubectl get pods -l <span class="nv">app</span><span class="o">=</span>postgres -n postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].spec.nodeName}&#39;</span><span class="sb">`</span>
+<span class="nb">echo</span> <span class="nv">$NODE</span>
+</pre></div>
+</div>
+<p>Now we can put the storage pool on that node into maintenance mode:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pxctl -n <span class="nv">$NODE</span> service pool maintenance --enter
+</pre></div>
+</div>
+<p>Now the storage will appear as offline be the node will still be online, it will just be marked as <cite>StorageDown</cite>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pxctl -n <span class="nv">$NODE</span> status
+&gt;&gt; Running pxctl on aws-node-2
+Status: PX storage down
+License: Trial <span class="o">(</span>expires <span class="k">in</span> <span class="m">10</span> days<span class="o">)</span>
+Node ID: 92257c6b-26f9-406a-afc2-4a7a454fd623
+  IP: <span class="m">192</span>.168.1.12
+   Local Storage Pool: <span class="m">1</span> pool
+  POOL  IO_PRIORITY  RAID_LEVEL  USABLE  USED  STATUS    ZONE  REGION
+  <span class="m">0</span>  MEDIUM    raid0    <span class="m">50</span> GiB  <span class="m">9</span>.0 GiB  In Maintenance  default  default
+  Local Storage Devices: <span class="m">1</span> device
+  Device  Path    Media Type    Size    Last-Scan
+  <span class="m">0</span>:1  /dev/sdc  STORAGE_MEDIUM_MAGNETIC  <span class="m">50</span> GiB    <span class="m">07</span> Apr <span class="m">21</span> <span class="m">23</span>:20 UTC
+  total      -      <span class="m">50</span> GiB
+  Cache Devices:
+   * No cache devices
+  Kvdb Device:
+  Device Path  Size
+  /dev/sdd  <span class="m">64</span> GiB
+   * Internal kvdb on this node is using this dedicated kvdb device to store its data.
+Cluster Summary
+  Cluster ID: aws
+  Cluster UUID: edd05bd6-78fb-442a-adce-12f056c8b240
+  Scheduler: kubernetes
+  Nodes: <span class="m">3</span> node<span class="o">(</span>s<span class="o">)</span> with storage <span class="o">(</span><span class="m">2</span> online<span class="o">)</span>
+  IP    ID          SchedulerNodeName  StorageNode  Used    Capacity  Status      StorageStatus      Version    Kernel      OS
+  <span class="m">192</span>.168.1.12  92257c6b-26f9-406a-afc2-4a7a454fd623  aws-node-2    Yes    Unavailable  Unavailable  Online <span class="o">(</span>StorageDown<span class="o">)</span>  In Maintenance <span class="o">(</span>This node<span class="o">)</span>  <span class="m">2</span>.6.4.0-4f9e45f  <span class="m">4</span>.4.0-206-generic  Ubuntu <span class="m">16</span>.04.5 LTS
+  <span class="m">192</span>.168.1.11  9041032b-17a5-444a-aaec-6850983ccc49  aws-node-1    Yes    <span class="m">10</span> GiB    <span class="m">50</span> GiB    Online      Up        <span class="m">2</span>.6.4.0-4f9e45f  <span class="m">4</span>.4.0-206-generic  Ubuntu <span class="m">16</span>.04.5 LTS
+  <span class="m">192</span>.168.1.13  <span class="m">47585465</span>-2eb0-46d6-a2f5-45b3742a9783  aws-node-3    Yes    <span class="m">8</span>.6 GiB    <span class="m">50</span> GiB    Online      Up        <span class="m">2</span>.6.4.0-4f9e45f  <span class="m">4</span>.4.0-206-generic  Ubuntu <span class="m">16</span>.04.5 LTS
+Global Storage Pool
+  Total Used      :  <span class="m">19</span> GiB
+  Total Capacity  :  <span class="m">100</span> GiB
+</pre></div>
+</div>
+<p>Now let’s confirm that the postgres database didn’t need to be reschedule:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -owide
+</pre></div>
+</div>
+<p>It should still be running on the same node as before.  We can even access data on the database:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nv">POSTGRES_POD</span><span class="o">=</span><span class="sb">`</span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -o <span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.items[0].metadata.name}&#39;</span><span class="sb">`</span>
+kubectl <span class="nb">exec</span> -it -n postgres <span class="nv">$POSTGRES_POD</span> -- psql pxdemo -c <span class="s2">&quot;select count(*) from pgbench_accounts&quot;</span>
+</pre></div>
+</div>
+<p>We can now bring our pool back online:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pxctl -n <span class="nv">$NODE</span> service pool maintenance --exit
+</pre></div>
+</div>
+<p>When coming out of a maintenance state, after the drive is replaced (see maintenance operation above in test 3.5), the node will re-initialize and be offline for a short period of time:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>watch --color <span class="s2">&quot;kubectl pxc pxctl -n </span><span class="nv">$NODE</span><span class="s2"> status&quot;</span>
+</pre></div>
+</div>
+<p>This can be done without relocating pods running on the node. If the pod tries to perform IO to the a volume on that node it will get an IO timeout error from the Linux file system. To be safe, we recommend relocating the pods during this maintenance operation as described in test 3.5. In this case we did not perform those steps and we can see the pod is still on the same node:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>kubectl get po -n postgres -l <span class="nv">app</span><span class="o">=</span>postgres -owide
+</pre></div>
+</div>
+</div>
 </div>
 
 
@@ -401,6 +497,7 @@ pxctl volume inspect <span class="nv">$VOLID</span>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="ch_monitoring.html" class="btn btn-neutral float-right" title="Monitoring" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="ch_functional_testing.html" class="btn btn-neutral float-left" title="Functional Testing" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
@@ -410,7 +507,7 @@ pxctl volume inspect <span class="nv">$VOLID</span>
     <p>
         &#169; Copyright 2021, Pure Storage Inc..
       <span class="lastupdated">
-        Last updated on 2021-06-01 01:04.
+        Last updated on 2021-06-02 02:41.
       </span>
 
     </p>
