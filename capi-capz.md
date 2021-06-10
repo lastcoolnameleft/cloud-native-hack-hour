@@ -86,6 +86,9 @@ export AZURE_SUBSCRIPTION_ID_B64="$(echo -n "$AZURE_SUBSCRIPTION_ID" | base64 | 
 export AZURE_TENANT_ID_B64="$(echo -n "$AZURE_TENANT_ID" | base64 | tr -d '\n')"
 export AZURE_CLIENT_ID_B64="$(echo -n "$AZURE_CLIENT_ID" | base64 | tr -d '\n')"
 export AZURE_CLIENT_SECRET_B64="$(echo -n "$AZURE_CLIENT_SECRET" | base64 | tr -d '\n')"
+export AZURE_CONTROL_PLANE_MACHINE_TYPE="Standard_DS2_v2"
+export AZURE_LOCATION="eastus"
+export AZURE_NODE_MACHINE_TYPE="Standard_DS2_v2"
 clusterctl init --infrastructure azure
 kubectl get pods,deployments -A
 ```
