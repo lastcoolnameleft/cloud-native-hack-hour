@@ -32,6 +32,10 @@
     - Replacing AKS-engine
 - Future will allow creating Managed (AKS) clusters
 
+## Architecture
+
+![](https://github.com/lastcoolnameleft/kubernetes-examples/blob/master/capi-capz/architecture.svg)
+
 ## CONCEPTS
 
 - Mgmt cluster - In this case, Kind.  This is control plane for fleet of clusters
